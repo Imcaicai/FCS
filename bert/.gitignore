@@ -1,0 +1,7 @@
+cnews/
+pool/
+chinese_wwm_pytorch/
+outs/
+learn.txt
+.vscode
+.DS_Store
