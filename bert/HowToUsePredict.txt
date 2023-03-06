@@ -1,0 +1,4 @@
+1.整理数据格式为url+text,改名为predict.csv
+2.执行如下指令：
+  cd bert
+  python predict.py --data_dir 待预测csv文件所在目录
