@@ -23,7 +23,7 @@ np.set_printoptions(threshold=np.inf)   # 输出数组时，不用省略号
 
 
 TLD = ['com', 'at', 'uk', 'pl', 'be', 'biz', 'co', 'jp', 'co_jp', 'cz', 'de', 'eu', 'fr', 'info', 'it', 'ru', 'lv', 'me', 'name', 'net', 'nz', 'org', 'us']
-dataset_path = '../data/train_dataset.csv'
+dataset_path = '../data/train_dataset_4.csv'
 basic_feature_path = 'basic_feature_set.npy'
 
 '''

@@ -10,7 +10,7 @@ import openpyxl as op
 
 lock = threading.RLock()
 service_url = "https://whois.chinaz.com/"
-dataset_path = '../data/train_dataset.csv'
+dataset_path = '../data/train_dataset_1.csv'
 whois_feature_path = 'whois_feature_set.npy'
 cn2en = {"更新时间": "updated_date", "创建时间": "creation_date", "过期时间": "expiration_date"}
 bg = op.load_workbook(r"whois_feature_set.xlsx")

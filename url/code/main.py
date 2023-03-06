@@ -1,3 +1,4 @@
+from tkinter import Y
 import pandas as pd
 import numpy as np
 import sklearn
@@ -14,7 +15,7 @@ simplefilter(action='ignore', category=FutureWarning)
 # 设置路径
 basic_feature_path = 'featureComparison/basic_feature_set.npy'
 lexical_feature_path = 'featureComparison/lexical_feature_set.npy'
-dataset_path = 'data/train_dataset.csv'
+dataset_path = 'data/train_dataset_4.csv'
 
 # 读取数据集
 df = pd.read_csv(dataset_path, header=0)
@@ -52,6 +53,8 @@ def classification(feature_set, label):
 
     # 预测
     y_LR = LR.fit(x_train, y_train).predict(x_test)
+    # y_LR_proba = LR.fit(x_train, y_train).predict_proba(x_test)
+    # print(y_LR_proba)
     print('Logistic Regression prediction: ', accuracy_score(y_test, y_LR))
 
     return 0
