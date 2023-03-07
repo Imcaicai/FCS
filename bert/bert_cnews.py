@@ -174,10 +174,55 @@ class urlProcessor(DataProcessor):
         return examples
 
 
+class pure_urlProcessor(DataProcessor):
+    """Processor for the cnews data set (GLUE version)."""
+    def get_example_from_tensor_dict(self, tensor_dict):
+        """See base class."""
+        return InputExample(tensor_dict['idx'].numpy(),
+                            tensor_dict['sentence'].numpy().decode('utf-8'),
+                            None, str(tensor_dict['label'].numpy()))
+
+    def get_train_examples(self, data_dir):
+        """See base class."""
+        import csv
+        csv.field_size_limit(500 * 1024 * 1024)
+        with open(os.path.join(data_dir, 'ds_train.csv'), 'r') as f:
+            return self._create_examples(list(csv.reader(f)), "train")
+
+    def get_dev_examples(self, data_dir):
+        """See base class."""
+        import csv
+        with open(os.path.join(data_dir, 'ds_test.csv'), 'r') as f:
+            return self._create_examples(list(csv.reader(f)), "dev")
+
+    def get_labels(self):
+        """See base class."""
+        #0正常、1购物消费、2婚恋交友、了假冒身份、4钓鱼网站、5 冒充公检法、6平台诈骗、7招聘兼职、8杀猪盘、9博彩赌博、10信贷理财、11刷单诈骗、12 中奖诈骗
+        return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+
+    def _create_examples(self, lines, set_type):
+        """Creates examples for the training and dev sets."""
+        examples = []
+        # remove file's header
+        del lines[0]
+        for (i, line) in enumerate(lines):
+            guid = "%s-%s" % (set_type, i)
+            text_a = line[0]
+            label = int(line[1])
+            examples.append(
+                InputExample(guid=guid,
+                             text_a=text_a,
+                             text_b=None,
+                             label=label))
+        return examples
+
+
 processors["cnews"] = CnesProcessor
 output_modes["cnews"] = "classification"
 processors["url_classification"] = urlProcessor
 output_modes["url_classification"] = "classification"
+processors["pure_url_classification"] = pure_urlProcessor
+output_modes["pure_url_classification"] = "classification"
 
 
 def train(args, train_dataset, model, tokenizer):
@@ -547,7 +592,7 @@ def main():
         + ", ".join(ALL_MODELS))
     parser.add_argument(
         "--task_name",
-        default='url_classification',
+        default='pure_url_classification',
         type=str,
         required=False,
         help="The name of the task to train selected in the list: " +
@@ -586,7 +631,7 @@ def main():
         "The maximum total input sequence length after tokenization. Sequences longer "
         "than this will be truncated, sequences shorter will be padded.")
     parser.add_argument("--do_train",
-                        default=False,
+                        default=True,
                         action='store_true',
                         help="Whether to run training.")
     parser.add_argument("--do_eval",
@@ -635,7 +680,7 @@ def main():
                         type=float,
                         help="Max gradient norm.")
     parser.add_argument("--num_train_epochs",
-                        default=1.0,
+                        default=5.0,
                         type=float,
                         help="Total number of training epochs to perform.")
     parser.add_argument(
@@ -668,7 +713,7 @@ def main():
     # !:should be set false when trained on GPU
     parser.add_argument("--no_cuda",
                         action='store_true',
-                        default=True,
+                        default=False,
                         help="Avoid using CUDA when available")
     parser.add_argument('--overwrite_output_dir',
                         default=True,
