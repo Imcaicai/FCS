@@ -4,10 +4,10 @@
 '''
 
 from mimetypes import guess_all_extensions
+from xml import dom
 import pandas as pd
 import numpy as np
 from tld import get_tld
-
 
 def get_domain(url):
     domain = ''
@@ -20,9 +20,10 @@ def get_domain(url):
     return domain 
 
 
-url_path = '../train_dataset_1.csv'
+url_path = 'data/abnormal.csv'
 df = pd.read_csv(url_path, header=0)
 url = df['url']
+label = df['label']
 domain_path = []
 domain = []
 
@@ -33,11 +34,14 @@ for i in url:
             domain_path.append(i[7:-1])
         else:
             domain_path.append(i[7:])
-    if i[0:8] == 'https://':
+    elif i[0:8] == 'https://':
         if i[-1] == '/':
             domain_path.append(i[8:-1])
         else:
             domain_path.append(i[8:])
+    else:
+        domain_path.append(i)
+
 
 df_domain_path = pd.DataFrame({'url':domain_path})
 df_domain_path.to_csv('domain_path.csv', index=False,sep=',')
@@ -48,3 +52,7 @@ for i in domain_path:
     domain.append(get_domain(i))
 df_domain = pd.DataFrame({'url':domain})
 df_domain.to_csv('domain.csv', index=False,sep=',')
+
+domain_label = np.array((domain, label.T)).T
+df_domain = pd.DataFrame(domain_label, columns=['domain', 'label'])
+df_domain.to_csv('domain.csv', index=False)

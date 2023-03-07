@@ -20,7 +20,7 @@ suspicious_word = ['update', 'click', 'www.', 'link']
 # 可疑顶级域
 suspicious_tld=['zip','cricket','link','work','party','gq','kim','country','science','tk']
 
-dataset_path = '../data/train_dataset.csv'
+dataset_path = '../data/train_dataset_2.csv'
 lexical_feature_path = 'lexical_feature_set.npy'
 
 
