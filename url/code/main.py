@@ -15,7 +15,8 @@ simplefilter(action='ignore', category=FutureWarning)
 # 设置路径
 basic_feature_path = 'featureComparison/basic_feature_set.npy'
 lexical_feature_path = 'featureComparison/lexical_feature_set.npy'
-dataset_path = 'data/train_dataset_4.csv'
+whois_feature_path = 'featureComparison/whois_feature_set.npy'
+dataset_path = 'data/train_dataset_2.csv'
 
 # 读取数据集
 df = pd.read_csv(dataset_path, header=0)
@@ -31,6 +32,9 @@ df_basic = pd.DataFrame(data=basic_feature, columns=['ip_in_hostname', 'url_len'
 lexical_feature = np.load(lexical_feature_path).astype(int)
 df_lexical = pd.DataFrame(data=lexical_feature, columns=['deli_num','hyp_num','url_len','nor_tld_token','sus_word_token'])
 
+# 3. whois feature
+whois_feature = np.load(whois_feature_path).astype(int)
+df_whois = pd.DataFrame(data=whois_feature, columns=['n2u','n2c','e2c'])
 
 
 '''
@@ -67,4 +71,9 @@ print('\n')
 print('----------------------------------------------------')
 print('2. Lexica Feature Set Classification Results')
 classification(lexical_feature,label)
+print('\n')
+
+print('----------------------------------------------------')
+print('3. Whois Feature Set Classification Results')
+classification(whois_feature,label)
 print('\n')

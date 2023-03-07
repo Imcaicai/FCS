@@ -13,7 +13,7 @@ service_url = "https://whois.chinaz.com/"
 dataset_path = '../data/train_dataset_1.csv'
 whois_feature_path = 'whois_feature_set.npy'
 cn2en = {"更新时间": "updated_date", "创建时间": "creation_date", "过期时间": "expiration_date"}
-bg = op.load_workbook(r"whois_feature_set.xlsx")
+bg = op.load_workbook(r"whois_feature_set0.xlsx")
 sheet = bg["Sheet1"]
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36'}
@@ -99,5 +99,10 @@ if __name__ == '__main__':
     [t.start() for t in ts]
     [t.join() for t in ts]
 
-    bg.save("whois_feature_set.xlsx")
+    bg.save("whois_feature_set0.xlsx")
 
+
+    # # 先用pandas读入csv
+    # data = pd.read_csv("whois_feature_set.csv")
+    # # 再使用numpy保存为npy
+    # np.save("whois_feature_set.npy", data)

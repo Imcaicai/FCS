@@ -39,6 +39,12 @@
   LR cross value:  0.9826729386634998 
 
   Logistic Regression prediction:  0.9860742705570292
+  
+- Whois Feature Set Classification Results 
+
+  LR cross value:  0.7694413001988263 
+
+  Logistic Regression prediction:  0.7579575596816976
 
 
 
@@ -83,6 +89,19 @@
   LR cross value:  0.3799312879887565 
 
   Logistic Regression prediction:  0.42094017094017094
+
+
+
+训练集标签&数量：
+
+![image-20230307161601241](C:/Users/29393/AppData/Roaming/Typora/typora-user-images/image-20230307161601241.png)
+
+|                          | LR准确率            | 备注                                                         |
+| ------------------------ | ------------------- | ------------------------------------------------------------ |
+| 13个类一起分类           | 0.6840185676392573  | train.csv所有数据                                            |
+| 0和非0 二分类            | 0.9860742705570292  | trainl.csv中正常网址一类，不正常网址为另一类                 |
+| 2和非2 二分类            | 0.6798093587521664  | trainl.csv中去掉正常网址，剩下的标签2为一类，其他标签为另一类 |
+| 6、4、10、11、8、9和其他 | 0.42094017094017094 | trainl.csv中去掉正常、标签为2的网址                          |
 
 
 
