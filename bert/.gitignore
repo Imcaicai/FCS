@@ -6,3 +6,4 @@ learn.txt
 .vscode
 .DS_Store
 runs/
+test.py
