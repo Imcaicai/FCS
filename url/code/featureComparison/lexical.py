@@ -20,8 +20,8 @@ suspicious_word = ['update', 'click', 'www.', 'link']
 # 可疑顶级域
 suspicious_tld=['zip','cricket','link','work','party','gq','kim','country','science','tk']
 
-dataset_path = '../data/train_dataset_2.csv'
-lexical_feature_path = 'lexical_feature_set.npy'
+dataset_path = '../data/test_0.csv'
+lexical_feature_path = 'lexical_test_0.csv'
 
 
 '''
@@ -112,6 +112,5 @@ if __name__ == '__main__':
 
 
     # 保存 lexical feature set
-    np.save('lexical_feature_set.npy', lexical_feature)
-    basic = pd.DataFrame(lexical_feature, columns=['deli_num','hyp_num','url_len','nor_tld_token', 'sus_word_token'])
-    basic.to_csv('lexical_feature_set.csv', index=False)
+    lexical = pd.DataFrame(lexical_feature, columns=['deli_num','hyp_num','url_len','nor_tld_token', 'sus_word_token'])
+    lexical.to_csv(lexical_feature_path, index=False)

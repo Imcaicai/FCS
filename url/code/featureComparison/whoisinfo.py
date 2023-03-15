@@ -10,7 +10,7 @@ import openpyxl as op
 
 lock = threading.RLock()
 service_url = "https://whois.chinaz.com/"
-dataset_path = '../data/train_dataset_1.csv'
+dataset_path = '../data/train_dataset_0.csv'
 whois_feature_path = 'whois_feature_set.npy'
 cn2en = {"更新时间": "updated_date", "创建时间": "creation_date", "过期时间": "expiration_date"}
 bg = op.load_workbook(r"whois_feature_set0.xlsx")
@@ -21,7 +21,7 @@ headers = {
 def get_whois_info(url):
     whois_info = {"updated_date": "nil", "creation_date": "nil", "expiration_date": "nil"}
     final_url = service_url + url
-    doc = requests.get(final_url, headers=headers, timeout=20)
+    doc = requests.get(final_url, headers=headers, timeout=40)
     doc.encoding = 'utf-8'
     doc = doc.text
     html = etree.HTML(doc)
@@ -90,9 +90,9 @@ if __name__ == '__main__':
 
     ts = []
 
-    for i in range(len(url_list) // 100 + 1):
-        begin = i * 100
-        end = min(len(url_list), (i + 1) * 100)
+    for i in range(len(url_list) // 1000 + 1):
+        begin = i * 1000
+        end = min(len(url_list), (i + 1) * 1000)
         t = myThread(i, url_list, begin, end)
         ts.append(t)
 
