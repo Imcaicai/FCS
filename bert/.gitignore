@@ -7,3 +7,4 @@ learn.txt
 .DS_Store
 runs/
 test.py
+model/
