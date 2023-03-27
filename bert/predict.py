@@ -105,11 +105,13 @@ def main():
     m = torch.nn.Softmax(dim=1)
     prob = np.array(m(torch.Tensor(preds)))
     pred = np.argmax(preds, axis=1)
-    prob = np.max(prob, axis=1)
     pred = pd.DataFrame(pred)
     prob = pd.DataFrame(prob)
+    prob.columns = [
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'
+    ]
+    pred.columns = ['pred']
     prediction = pd.concat([pred, prob], axis=1)
-    prediction.columns = ['pred', 'prob']
     # save results
     prediction.to_csv(index=None, path_or_buf='./predict.csv')
 
