@@ -26,6 +26,8 @@ def LR():
 
     # 提取特征值和目标值
     feature = data[['deli_num','hyp_num','url_len','dot_num','nor_tld_token', 'sus_word_token','ip_in_hostname']]
+    # feature = data[['deli_num','hyp_num','url_len','dot_num','nor_tld_token', 'sus_word_token']]
+    # feature = data[['deli_num','url_len','ip_in_hostname']]
     label = data['label']
 
     # 划分数据集
