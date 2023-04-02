@@ -7,7 +7,7 @@ import pandas as pd
 from tqdm import tqdm
 from torch.utils.data import DataLoader, TensorDataset
 from transformers import InputExample, InputFeatures
-from transformers import BertConfig, BertForSequenceClassification, BertTokenizer
+from transformers import BertConfig, BertForSequenceClassification, BertTokenizer, BertModel
 from transformers import glue_convert_examples_to_features as convert_examples_to_features
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -33,7 +33,7 @@ def Load_data(args, tokenizer):
     with open(os.path.join(args.data_dir, 'val.csv'), 'r') as f:
         examples = create_examples(list(csv.reader(f)), 'predict')
     label_list = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-    features = features = convert_examples_to_features(
+    features = convert_examples_to_features(
         examples,
         tokenizer,
         label_list=label_list,
@@ -54,13 +54,14 @@ def Load_data(args, tokenizer):
 #all in main
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_dir",
-                        default="./url/predict",
-                        type=str,
-                        required=False,
-                        help="Locate the dataset")
+    parser.add_argument(
+        "--data_dir",
+        default="bert/url/predict",  #need to be changed for debug
+        type=str,
+        required=False,
+        help="Locate the dataset")
     parser.add_argument("--model_dir",
-                        default='./model',
+                        default='bert/model',
                         type=str,
                         required=False,
                         help="Locate the pre-trained model")
@@ -102,6 +103,7 @@ def main():
             preds = logits.detach().cpu().numpy()
         else:
             preds = np.append(preds, logits.detach().cpu().numpy(), axis=0)
+
     m = torch.nn.Softmax(dim=1)
     prob = np.array(m(torch.Tensor(preds)))
     pred = np.argmax(preds, axis=1)
