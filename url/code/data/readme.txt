@@ -5,5 +5,4 @@ abnormal.csv    		题目给的所有训练集、不正常的网址（标签都�
 train.csv       		全部的abnormal.csv + 30%的normal.csv（训练用的训练集）
 normal.csv      		train1中所有 url 的标签及有效性
 normal_1.csv    		所有正常的且能打开的 url
-feature_normal_1.csv    	normal_1.csv 的特征
-feature_normal_2.csv    	从 normal_1.csv 中取样的80000条正常url的特征
+feature_normal_1.csv    normal_1.csv 的特征

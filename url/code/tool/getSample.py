@@ -8,6 +8,7 @@ from sklearn.cluster import KMeans
 from sklearn.datasets import make_blobs
 import matplotlib.pyplot as plt
 from sklearn.metrics.pairwise import pairwise_distances_argmin
+from feature import get_feature
 
 
 """
@@ -39,7 +40,8 @@ def systematic_sample(array, step):
     return array[select_index]
 
 
-"""分层抽样: 先按照容量，给每个样本一些指标，然后样本内等概率抽样
+"""
+分层抽样: 先按照容量，给每个样本一些指标，然后样本内等概率抽样
 array: 样本数据
 label: 样本类别
 size: 采样个数
@@ -48,16 +50,6 @@ def stratify_sample(array, label, size: int):
     stratified_sample, _ = train_test_split(array, train_size=size, stratify=label)
     return stratified_sample
 
-
-# def main():
-#     # 构造数据
-#     array_data = np.arange(0, 100)  # 待取样数据
-#     array_label = np.random.random_integers(0, 5, size=100)  # 类别
-#     # 开始采样
-#     result = stratify_sample(array_data, array_label, 80)  # 分层抽样
-#     print(array_data)
-#     print(array_label)
-#     print(result)
 
 
 '''
@@ -69,25 +61,31 @@ def filter():
     # url=data[:,0]
     # label=data[:,1]
     # is_open=data[:,2]
-    result=[]
+    url=[]
+    label=[]
     for i in data:
         if i[1]==0 and i[2]==1:
-            result.append(i[0])
-    result_set = pd.DataFrame(result, columns=['url'])
+            url.append(i[0])
+            label.append(i[1])
+    result=np.array((url,label)).T
+    result_set = pd.DataFrame(result, columns=['url','label'])
     result_set.to_csv('data/normal_1.csv', index=False)
 
 
-if __name__ == '__main__':
-    # filter()
-
+'''
+利用kmeans聚类将正常的 url 分为 3 类，并用分层抽样抽取80000个数据
+data_path: 所有正常的、能打开的 url文件
+sample_path: 保存样本的文件
+abnormal_path: 不正常的 url 及其标签
+'''
+def get_sample(data_path,abnormal_path,train_path):
     # 加载数据集
-    data = pd.read_csv("data/feature_normal_1.csv")
+    data = pd.read_csv(data_path)
     feature = np.array(data[['deli_num','url_len']])
-    all=np.array(data)
+    all = np.array(data[['url','label']])
     
     # 画图
     fig = plt.figure()
-    # fig.subplots_adjust()
     colors = ["#4EACC5", "#FF9C34", "#4E9A06"]
     
     # 构造一个聚类器
@@ -122,7 +120,29 @@ if __name__ == '__main__':
     # 分层抽样
     result = stratify_sample(all, label_pred, 80000)  
     
-    # 保存结果样本
-    sample = np.array((result[:,0],result[:,1],result[:,2],result[:,3],result[:,4],result[:,5],result[:,6])).T
-    sample_set1 = pd.DataFrame(sample, columns=['deli_num','hyp_num','url_len','dot_num','nor_tld_token', 'sus_word_token','ip_in_hostname'])
-    sample_set1.to_csv('data/feature_normal_2.csv', index=False)
+    # 与不正常 url 合并
+    abnormal = np.array(pd.read_csv(abnormal_path))
+    url = []
+    label = []
+    for i in abnormal:
+        url.append(i[0])
+        label.append(i[1])
+    for i in result:
+        url.append(i[0])
+        label.append(i[1])
+
+    # 保存取样后的训练集
+    sample = np.array((url,label)).T
+    sample_set = pd.DataFrame(sample, columns=['url','label'])
+    sample_set.to_csv(train_path, index=False)
+
+
+
+if __name__ == '__main__':
+    # # 1. 过滤掉无法打开的或者标签不为 0 的 url
+    # filter()        
+    # # 2. 获取这些 url 的所有特征
+    # get_feature('data/normal_1.csv','data/feature_normal_1.csv')
+    # 3. 抽取正常 url 的样本，并和不正常 url合并
+    get_sample('data/feature_normal_1.csv','data/abnormal.csv','data/train.csv')     
+
