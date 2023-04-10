@@ -19,12 +19,13 @@ from warnings import simplefilter
 # 忽略所有 future warnings
 simplefilter(action='ignore', category=FutureWarning)
 
-def forest():
+def forest(feature_path):
     # 加载数据
-    data = pd.read_csv("data/feature_train.csv")
+    data = pd.read_csv(feature_path)
 
     # 构造特征值和目标值
-    feature = data[['deli_num','hyp_num','url_len','dot_num','nor_tld_token', 'sus_word_token','ip_in_hostname']]
+    feature = data[['deli_num','hyp_num','url_len','dot_num','nor_tld_token', 'sus_word_token','ip_in_hostname','addr','longitude','latitude']]
+    # feature = data[['deli_num','hyp_num','url_len','dot_num','nor_tld_token', 'sus_word_token','ip_in_hostname']]
     label = data['label']
 
     # 划分数据集
@@ -33,7 +34,7 @@ def forest():
     print("测试集：", x_test.shape, y_test.shape)
 
     # 建立模型
-    RF = RandomForestClassifier(n_estimators=100, max_depth=8, max_features=5)
+    RF = RandomForestClassifier(n_estimators=100, max_depth=8, max_features=6)
 
     # # 超参数搜索
     # param = {"n_estimators":[50, 55, 60, 65, 70], "max_depth":[4, 6, 8, 10, 12]}
@@ -67,9 +68,9 @@ def forest():
     p=[0.7, 0.8, 0.9]
     r=f(p)
     score=0.5*r[0]+0.3*r[1]+0.2*r[2]
-    print(score)
+    print('最终得分',score)
     
 
 
 if __name__ == "__main__":
-    forest()
+    forest('data/train_feature.csv')

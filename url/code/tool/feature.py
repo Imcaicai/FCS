@@ -13,6 +13,7 @@ All Feature set
 import pandas as pd
 import numpy as np
 import tldextract
+from sklearn.preprocessing import LabelEncoder
 
 # 正常顶级域
 normal_tld = ['com', 'at', 'uk', 'pl', 'be', 'biz', 'co', 'jp', 'co_jp', 'cz', 'de', 'eu', 'fr', 'info', 'it', 'ru', 'lv', 'me', 'name', 'net', 'nz', 'org', 'us']
@@ -91,6 +92,11 @@ def is_ip_in_hostname(url):
     return 0
 
 
+'''
+获取lexical feature
+dataset_path:   读取的url路径
+feature_path:   lexical feature的保存路径
+'''
 def get_feature(dataset_path,feature_path):
     # 读取数据集
     df = pd.read_csv(dataset_path, header=0)
@@ -125,7 +131,41 @@ def get_feature(dataset_path,feature_path):
     feature_set.to_csv(feature_path, index=False)
 
 
+'''
+合并lexical feature和ip feature
+删除ip feature缺失的行
+再次对normal的url抽样，使不正常url:正常url=1:3
+lexical_path:   lexical feature的读取路径 
+ip_path:        ip feature的读取路径
+feature_path:   合并过滤后feature的保存路径
+'''
+def merge_feature(lexical_path,ip_path,feature_path):
+    # 读取数据集
+    lexical = pd.read_csv(lexical_path)
+    ip= pd.read_csv(ip_path)
+    
+    # 删除ip feature缺失的行
+    ip = ip.dropna(axis=0,subset=['longitude'])
+
+    # 给ip feature的国家编码
+    ip[['addr']] = LabelEncoder().fit_transform(ip[['addr']])
+
+    # 合并lexical feature和ip feature
+    data = pd.merge(lexical, ip, on=['url'], how='right')
+    data = data[['deli_num','hyp_num','url_len','dot_num','nor_tld_token', 'sus_word_token','ip_in_hostname','url','label','addr','longitude','latitude']]
+    
+    # 控制不正常url:正常url=3:1
+    abnormal=data.head(17000)               # 正常url：前17000条
+    normal=data.tail(data.shape[0]-17000)   # 正常url：后面的data.shape[0]-17000条
+    normal=normal.sample(n=17000*3)         # 取样，保证1:3
+    result = pd.concat([abnormal,normal])   # 合并不正常的和正常的
+    result.to_csv(feature_path)
+
 if __name__ == '__main__':
-    dataset_path = 'data/normal_1.csv'
-    feature_path = 'data/feature_normal_1.csv'
-    get_feature(dataset_path,feature_path)
+    # # 生成lexical feature
+    # dataset_path = 'data/normal_1.csv'
+    # feature_path = 'data/feature_normal_1.csv'
+    # get_feature(dataset_path,feature_path)
+
+    # 合并lexical feature和ip feature
+    merge_feature('data/train_lexical_feature.csv','data/train_ip_feature.csv','data/train_feature.csv')
