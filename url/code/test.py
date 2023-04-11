@@ -1,91 +1,77 @@
-from tkinter import Y
+'''
+用随机森林预测
+'''
+
+from unittest import result
+from scipy import interpolate
 import pandas as pd
 import numpy as np
-import sklearn
-from warnings import simplefilter
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import cross_val_score, train_test_split
+from sklearn.feature_extraction import DictVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import accuracy_score
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import plot_precision_recall_curve
 import matplotlib.pyplot as plt
-
+from warnings import simplefilter
 
 # 忽略所有 future warnings
 simplefilter(action='ignore', category=FutureWarning)
 
-# 设置路径
-train_path = 'data/train.csv'
-test_path = 'data/test.csv'
-result_path = 'data/result.csv'
-
-lex_train_path = 'featureComparison/lexical_train.csv'
-lex_test_path = 'featureComparison/lexical_test.csv'
-
-# 读取数据集
-df_train = pd.read_csv(train_path, header=0)
-df_test = pd.read_csv(test_path, header=0)
-label = df_train['label'].values
-
-
-
-# feature selection
-# 2. lexical feature
-lex_train_fea = pd.read_csv(lex_train_path,usecols=['deli_num','hyp_num','url_len','nor_tld_token','sus_word_token'])
-lex_test_fea = pd.read_csv(lex_test_path,usecols=['deli_num','hyp_num','url_len','nor_tld_token','sus_word_token'])
-
-
 '''
-用不同分类器分类
+预测test.csv
+train_path:     训练集路径
+test_path:      测试集路径
+result_path:    结果路径
 '''
-def classification(train_set, test_set, label, flag):
+def predict(train_path,test_path,result_path):
+    # 加载数据
+    train = pd.read_csv(train_path)
+    test = pd.read_csv(test_path)
 
-    if flag==0: # 用于训练，输出准确率
-        # 划分训练集和测试集
-        x_train, x_test, y_train, y_test = train_test_split(train_set.astype(float), label, test_size=0.2, random_state=123)
+    # 构造特征值和目标值
+    # 1不包括ip特征，2包括ip特征
+    x_train_1 = train[['deli_num','hyp_num','url_len','dot_num','nor_tld_token', 'sus_word_token','ip_in_hostname']]
+    x_train_2 = train[['deli_num','hyp_num','url_len','dot_num','nor_tld_token', 'sus_word_token','ip_in_hostname','addr','longitude','latitude']]
+    y_train = train['label']
+    url = test['url']
+    x_test_1 = test[test.isnull().T.any()]
+    url_1 = x_test_1['url']
+    x_test_1 = x_test_1[['deli_num','hyp_num','url_len','dot_num','nor_tld_token', 'sus_word_token','ip_in_hostname']]
+    
+    x_test_2 = test.dropna(axis=0,subset=['longitude'])
+    url_2 = x_test_2['url']
+    x_test_2 = x_test_2[['deli_num','hyp_num','url_len','dot_num','nor_tld_token', 'sus_word_token','ip_in_hostname','addr','longitude','latitude']]
 
-        # 归一化
-        x_train = MinMaxScaler().fit_transform(x_train)
-        x_test = MinMaxScaler().fit_transform(x_test)
+    # 建立模型
+    RF_1 = RandomForestClassifier(n_estimators=100, max_depth=6, max_features=6)
+    RF_2 = RandomForestClassifier(n_estimators=100, max_depth=8, max_features=6)
 
-        # 分类器算法
-        LR = LogisticRegression(penalty='l2')
+    # 训练
+    RF_1.fit(x_train_1.values, y_train)
+    RF_2.fit(x_train_2.values, y_train)
 
-        # 准确率
-        LR.fit(x_train, y_train)
-        # y_LR = LR.predict(x_test)
-        # print('Logistic Regression prediction: ', accuracy_score(y_test, y_LR))
-        y_scores = LR.predict_proba(x_test)
-        precision, recall, thresholds = precision_recall_curve(y_test, y_scores[:,1])
-        
-        # 通过sklear方法进行绘制 PR 曲线
-        plt.plot(recall, precision, drawstyle="steps-post")
-        plt.xlabel("Recall (Positive label: 1)")
-        plt.ylabel("Precision (Positive label: 1)")
-        plot_precision_recall_curve(LR, x_test, y_test)
-        plt.show()
-        
-        return 0
-
-    # 用于输出预测结果
-    x_train = train_set
-    y_train = label
-    x_test = test_set
-
-    x_train = MinMaxScaler().fit_transform(x_train)
-    x_test = MinMaxScaler().fit_transform(x_test)
-    LR = LogisticRegression(penalty='l2')
-
-    y_test = LR.fit(x_train, y_train).predict(x_test)
-    # 保存 lexical feature set
-    result = pd.DataFrame(y_test, columns=['label'])
+    # 预测
+    label_1 = RF_1.predict(x_test_1.values)
+    label_2 = RF_2.predict(x_test_2.values)
+    
+    print("url_1：", url_1.shape)
+    print("url_2：", url_2.shape)
+    
+    # 合并结果
+    result_1 = pd.DataFrame(np.array((url_1, label_1)).T, columns=['url','label_1'])
+    result_2 = pd.DataFrame(np.array((url_2, label_2)).T, columns=['url','label_2'])
+    
+    result = pd.merge(url, result_1, on='url', how='left')
+    print("result：", result.shape)
+    result = pd.merge(result, result_2, on='url', how='left')
+    print("result：", result.shape)
+    
     result.to_csv(result_path, index=False)
+    
 
-    return 0
-
-
-print('----------------------------------------------------')
-print('2. Lexica Feature Set Classification Results')
-classification(lex_train_fea,lex_test_fea,label,0)
-print('\n')
+    
+if __name__ == "__main__":
+    predict('data/train_feature.csv','data/test_feature.csv','data/result.csv')

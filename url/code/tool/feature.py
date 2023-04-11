@@ -93,11 +93,11 @@ def is_ip_in_hostname(url):
 
 
 '''
-获取lexical feature
+获取训练集的lexical feature
 dataset_path:   读取的url路径
 feature_path:   lexical feature的保存路径
 '''
-def get_feature(dataset_path,feature_path):
+def get_train_feature(dataset_path,feature_path):
     # 读取数据集
     df = pd.read_csv(dataset_path, header=0)
 
@@ -121,7 +121,6 @@ def get_feature(dataset_path,feature_path):
         sus_word_token.append(is_suspicious_word(i))
         ip_in_hostname.append(is_ip_in_hostname(i))
 
-
     # 形成 lexical feature set
     feature = np.array((deli_num,hyp_num,url_len,dot_num,nor_tld_token, sus_word_token,ip_in_hostname,url,label)).T
 
@@ -130,25 +129,59 @@ def get_feature(dataset_path,feature_path):
     # feature_set = pd.DataFrame(feature)
     feature_set.to_csv(feature_path, index=False)
 
-
+    
 '''
-合并lexical feature和ip feature
+获取测试集的lexical feature
+dataset_path:   读取的url路径
+feature_path:   lexical feature的保存路径
+'''
+def get_test_feature(dataset_path,feature_path):
+    # 读取数据集
+    df = pd.read_csv(dataset_path, header=0)
+
+    # 获取 lexical feature set
+    url = df['url']
+    deli_num = []   # 分隔符总数
+    hyp_num = []    # 连字符总数
+    url_len = []    # 主机名长度
+    dot_num = []    # 点数
+    nor_tld_token = []  # 二进制特征：顶级域
+    sus_word_token = [] # 二进制特征：可疑单词
+    ip_in_hostname = [] # 域名中是否有IP地址
+
+    for i in url:
+        deli_num.append(get_deli_num(i))
+        hyp_num.append(get_hyp_num(i))
+        url_len.append(get_url_len(i))
+        dot_num.append(get_dot_num(i))
+        nor_tld_token.append(is_normal_tld(i))
+        sus_word_token.append(is_suspicious_word(i))
+        ip_in_hostname.append(is_ip_in_hostname(i))
+
+    # 形成 lexical feature set
+    feature = np.array((deli_num,hyp_num,url_len,dot_num,nor_tld_token, sus_word_token,ip_in_hostname,url)).T
+
+    # 保存 lexical feature set
+    feature_set = pd.DataFrame(feature, columns=['deli_num','hyp_num','url_len','dot_num','nor_tld_token', 'sus_word_token','ip_in_hostname','url'])
+    # feature_set = pd.DataFrame(feature)
+    feature_set.to_csv(feature_path, index=False)
+
+    
+'''
+合并训练集的lexical feature和ip feature
 删除ip feature缺失的行
 再次对normal的url抽样，使不正常url:正常url=1:3
 lexical_path:   lexical feature的读取路径 
 ip_path:        ip feature的读取路径
 feature_path:   合并过滤后feature的保存路径
 '''
-def merge_feature(lexical_path,ip_path,feature_path):
+def merge_train_feature(lexical_path,ip_path,feature_path):
     # 读取数据集
     lexical = pd.read_csv(lexical_path)
     ip= pd.read_csv(ip_path)
     
     # 删除ip feature缺失的行
     ip = ip.dropna(axis=0,subset=['longitude'])
-
-    # 给ip feature的国家编码
-    ip[['addr']] = LabelEncoder().fit_transform(ip[['addr']])
 
     # 合并lexical feature和ip feature
     data = pd.merge(lexical, ip, on=['url'], how='right')
@@ -161,11 +194,27 @@ def merge_feature(lexical_path,ip_path,feature_path):
     result = pd.concat([abnormal,normal])   # 合并不正常的和正常的
     result.to_csv(feature_path)
 
-if __name__ == '__main__':
-    # # 生成lexical feature
-    # dataset_path = 'data/normal_1.csv'
-    # feature_path = 'data/feature_normal_1.csv'
-    # get_feature(dataset_path,feature_path)
+    
+'''
+合并测试集的lexical feature和ip feature
+删除ip feature缺失的行
+lexical_path:   lexical feature的读取路径 
+ip_path:        ip feature的读取路径
+feature_path:   合并过滤后feature的保存路径
+'''
+def merge_test_feature(lexical_path,ip_path,feature_path):
+    # 读取数据集
+    lexical = pd.read_csv(lexical_path)
+    ip= pd.read_csv(ip_path)
 
     # 合并lexical feature和ip feature
-    merge_feature('data/train_lexical_feature.csv','data/train_ip_feature.csv','data/train_feature.csv')
+    data = pd.merge(lexical, ip, on=['url'], how='left')
+    data = data[['deli_num','hyp_num','url_len','dot_num','nor_tld_token', 'sus_word_token','ip_in_hostname','url','addr','longitude','latitude']]
+    data.to_csv(feature_path)
+
+if __name__ == '__main__':
+    # get_test_feature('data/test.csv','data/test_lexical_feature.csv')
+    merge_train_feature('data/train_lexical_feature.csv','data/train_ip_feature.csv','data/train_feature.csv')
+    merge_test_feature('data/test_lexical_feature.csv','data/test_ip_feature.csv','data/test_feature.csv')
+    
+    
